@@ -5,7 +5,7 @@
 
 website_curl()
 {
-    wget https://github.com/XiaomiFirmwareUpdater/xiaomifirmwareupdater.github.io/tree/0e5c83745c7ad4b9b4bf248458f0b1d82b906bcd/data/vendor/latest -O page.htm
+    wget https://github.com/XiaomiFirmwareUpdater/xiaomifirmwareupdater.github.io/tree/master/data/vendor/latest -O page.htm
     count_links
 }
 
@@ -36,7 +36,7 @@ function select_link()
 
 function yaml_load()
 {
-    raw_file="https://raw.githubusercontent.com/XiaomiFirmwareUpdater/xiaomifirmwareupdater.github.io/0e5c83745c7ad4b9b4bf248458f0b1d82b906bcd/data/vendor/latest/$yaml_file"
+    raw_file="https://raw.githubusercontent.com/XiaomiFirmwareUpdater/xiaomifirmwareupdater.github.io/master/data/vendor/latest/$yaml_file"
     wget $raw_file
     yaml_parser 	
 }
