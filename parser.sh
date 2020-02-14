@@ -62,22 +62,30 @@ function yaml_parser()
 rom_loader()
 {
     wget $git_file
-    unzip $ota_filename
-    export dir_name=$(basename $ota_filename .tgz)
-    echo $dir_name
-    dec_brotli
+    RETVAL=$?
+    if [ $RETVAL -eq 0 ]
+    then
+        unzip $ota_filename
+        dec_brotli
+    else
+        echo "Couldn't download $git_file"
+        exit 1
+    fi
 }
 
 dec_brotli() {
     echo "Decompressing brotli....."
-    brotli --decompress system.new.dat.br
-    brotli --decompress vendor.new.dat.br
+    sys_decompress="system.new.dat.br" 
+    ven_decompress="vendor.new.dat.br"
+    brotli --decompress $sys_decompress > /dev/null 2>&1
+    brotli --decompress $ven_decompress > /dev/null 2>&1
+    echo "Decompressed successfully....."
     sdatimg
 }
 
 sdatimg() {
     echo "Converting to img....."
-    curl -sLo sdat2img.py https://raw.githubusercontent.com/xpirt/sdat2img/master/sdat2img.py
+    wget https://raw.githubusercontent.com/xpirt/sdat2img/master/sdat2img.py -O sdat2img.py
     python3 sdat2img.py system.transfer.list system.new.dat > /dev/null 2>&1
     python3 sdat2img.py vendor.transfer.list vendor.new.dat vendor.img > /dev/null 2>&1
     extract
@@ -87,6 +95,7 @@ extract() {
     echo "Extracting the img's....."
     7z x system.img -y -osystem > /dev/null 2>&1
     7z x vendor.img -y -ovendor > /dev/null 2>&1
+    echo "Finished successfully"
     exit 1
 }
 
