@@ -45,16 +45,16 @@ function yaml_parser()
 {
      mapfile -t git_links < <(grep -i "github" $yaml_file | cut -d " " -f6)
      select git_id in "${git_links[@]}"
-    do
+     do
         case "$link_nr" in
             *)  export git_file=${git_id[$link_nr]}
                 echo "$git_file"
                 ota_filename=$(echo  $git_file | cut -d "/" -f9)
-    		echo $ota_filename
-		rom_loader
+    		    echo $ota_filename
+		        rom_loader
 
         esac
-    done
+     done
 
     exit
 }
@@ -85,8 +85,6 @@ sdatimg() {
 
 extract() {
     echo "Extracting the img's....."
-#    mkdir system
- #   mkdir vendor
     7z x system.img -y -osystem > /dev/null 2>&1
     7z x vendor.img -y -ovendor > /dev/null 2>&1
     exit 1
