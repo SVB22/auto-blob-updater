@@ -6,19 +6,11 @@
 website_curl()
 {
     wget https://github.com/XiaomiFirmwareUpdater/xiaomifirmwareupdater.github.io/tree/master/data/vendor/latest -O page.htm
-    count_links
 }
 
 function count_links()
 {
     mapfile -t device_link < <( cat page.htm | grep -E "href=\"*.*yml\""| cut -d "<" -f3 | cut -d " " -f3 | cut -d "\"" -f2)
-    len=${#device_link[@]}
-    if [ $len -eq 0 ]; then
-        exit 1
-    fi
-    echo $len
-    select_link
-
 }
 
 function select_link()
@@ -26,19 +18,18 @@ function select_link()
     select id in "${device_link[@]}" 
     do
         case "$device_nr" in
-            *)  yaml_file=${id}
-	        echo $yaml_file
-	        echo "You chose $yaml_file"
-	        yaml_load
+            *)  local yaml_file=${id}
+	  			      echo $yaml_file
+	        			echo "You chose $yaml_file"
+	        			yaml_load
         esac
     done
 }
 
 function yaml_load()
 {
-    raw_file="https://raw.githubusercontent.com/XiaomiFirmwareUpdater/xiaomifirmwareupdater.github.io/master/data/vendor/latest/$yaml_file"
-    wget $raw_file
-    yaml_parser 	
+    local raw_file="https://raw.githubusercontent.com/XiaomiFirmwareUpdater/xiaomifirmwareupdater.github.io/master/data/vendor/latest/$yaml_file"
+    wget $raw_file 	
 }
 
 function yaml_parser() 
@@ -47,12 +38,8 @@ function yaml_parser()
      select git_id in "${git_links[@]}"
      do
         case "$link_nr" in
-            *)  export git_file=${git_id[$link_nr]}
-                echo "$git_file"
+            *)  git_file=${git_id[$link_nr]}
                 ota_filename=$(echo  $git_file | cut -d "/" -f9)
-    		    echo $ota_filename
-		        rom_loader
-
         esac
      done
 
@@ -62,15 +49,6 @@ function yaml_parser()
 rom_loader()
 {
     wget $git_file
-    RETVAL=$?
-    if [ $RETVAL -eq 0 ]
-    then
-        unzip $ota_filename
-        dec_brotli
-    else
-        echo "Couldn't download $git_file"
-        exit 1
-    fi
 }
 
 dec_brotli() {
@@ -80,7 +58,6 @@ dec_brotli() {
     brotli --decompress $sys_decompress > /dev/null 2>&1
     brotli --decompress $ven_decompress > /dev/null 2>&1
     echo "Decompressed successfully....."
-    sdatimg
 }
 
 sdatimg() {
@@ -88,7 +65,6 @@ sdatimg() {
     wget https://raw.githubusercontent.com/xpirt/sdat2img/master/sdat2img.py -O sdat2img.py
     python3 sdat2img.py system.transfer.list system.new.dat > /dev/null 2>&1
     python3 sdat2img.py vendor.transfer.list vendor.new.dat vendor.img > /dev/null 2>&1
-    extract
 }
 
 extract() {
@@ -96,8 +72,29 @@ extract() {
     7z x system.img -y -osystem > /dev/null 2>&1
     7z x vendor.img -y -ovendor > /dev/null 2>&1
     echo "Finished successfully"
-    exit 1
+    exit
 }
 
+# =====================================================================================
+# main
+# =====================================================================================
+
 website_curl
+count_links
+if [ ${#device_link[@]} -eq 0 ]; then
+	exit 1
+fi
+select_link
+yaml_parser
+if [ $? -eq 0 ]
+then
+	rom_loader
+	unzip $ota_filename
+  dec_brotli
+else
+	echo "Couldn't download $git_file"
+  exit 1
+fi
+sdatimg
+extract
 
