@@ -1,4 +1,4 @@
-#!/bin/bash  
+#!/bin/bash -xv 
 #
 # CI Runner Script for Generation of blobs
 #
@@ -18,10 +18,10 @@ function select_link()
     select id in "${device_link[@]}" 
     do
         case "$device_nr" in
-            *)  local yaml_file=${id}
-	  			      echo $yaml_file
+            *)  yaml_file=${id}
 	        			echo "You chose $yaml_file"
-	        			yaml_load
+					yaml_load
+					return 0
         esac
     done
 }
@@ -30,6 +30,7 @@ function yaml_load()
 {
     local raw_file="https://raw.githubusercontent.com/XiaomiFirmwareUpdater/xiaomifirmwareupdater.github.io/master/data/vendor/latest/$yaml_file"
     wget $raw_file 	
+    yaml_parser
 }
 
 function yaml_parser() 
@@ -38,8 +39,10 @@ function yaml_parser()
      select git_id in "${git_links[@]}"
      do
         case "$link_nr" in
-            *)  git_file=${git_id[$link_nr]}
-                ota_filename=$(echo  $git_file | cut -d "/" -f9)
+            *) export git_file=${git_id[$link_nr]}
+               export ota_filename=$(echo  $git_file | cut -d "/" -f9)
+	       rom_loader	
+	       return 0
         esac
      done
 
@@ -49,14 +52,13 @@ function yaml_parser()
 rom_loader()
 {
     wget $git_file
+    unzip $ota_filename
 }
 
 dec_brotli() {
     echo "Decompressing brotli....."
-    sys_decompress="system.new.dat.br" 
-    ven_decompress="vendor.new.dat.br"
-    brotli --decompress $sys_decompress > /dev/null 2>&1
-    brotli --decompress $ven_decompress > /dev/null 2>&1
+    brotli --decompress  system.new.dat.br > /dev/null 2>&1
+    brotli --decompress vendor.new.dat.br > /dev/null 2>&1
     echo "Decompressed successfully....."
 }
 
@@ -81,20 +83,12 @@ extract() {
 
 website_curl
 count_links
-if [ ${#device_link[@]} -eq 0 ]; then
-	exit 1
-fi
-select_link
-yaml_parser
-if [ $? -eq 0 ]
+if [ ${#device_link[@]} -eq 0 ] 
 then
-	rom_loader
-	unzip $ota_filename
-  dec_brotli
-else
-	echo "Couldn't download $git_file"
-  exit 1
+	exit 1
+else 
+	select_link
+  	dec_brotli
+	sdatimg
+	extract
 fi
-sdatimg
-extract
-
