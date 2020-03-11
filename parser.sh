@@ -63,12 +63,15 @@ function dumpyara() {
     chmod 755 dumpyara.sh
     ./dumpyara.sh $ota_filename
     ota_file=$(basename $ota_filename .zip)
+    rm $ota_filename
     cd working/${ota_file} 
     mv vendor system
     bash $setup_makefiles system/
     bash $extract_files system/
     exit
 }
+
+
 # =====================================================================================
 # main
 # =====================================================================================
