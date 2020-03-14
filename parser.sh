@@ -6,9 +6,10 @@
 setup_makefiles="/mnt/compile3/derpfest/device/xiaomi/ginkgo/setup-makefiles.sh"
 extract_files="/mnt/compile3/derpfest/device/xiaomi/ginkgo/extract-files.sh"
 
-website_curl()
+
+function website_curl()
 {
-    wget https://github.com/XiaomiFirmwareUpdater/miui-updates-tracker/tree/master/stable_recovery -O page.htm
+    wget https://github.com/XiaomiFirmwareUpdater/xiaomifirmwareupdater.github.io/tree/master/data/devices/full -O page.htm
 }
 
 function count_links()
@@ -31,14 +32,14 @@ function select_link()
 
 function yaml_load()
 {
-    local raw_file="https://raw.githubusercontent.com/XiaomiFirmwareUpdater/miui-updates-tracker/master/stable_recovery/$yaml_file"
+    local raw_file="https://raw.githubusercontent.com/XiaomiFirmwareUpdater/xiaomifirmwareupdater.github.io/master/data/devices/full/$yaml_file"
     wget $raw_file 	
     yaml_parser
 }
 
 function yaml_parser() 
 {
-     mapfile -t git_links < <(grep -i "download" $yaml_file | cut -d " " -f2)
+     mapfile -t git_links < <( egrep github:[[:blank:]]+https $yaml_file| awk '{print $2}') 
      select git_id in "${git_links[@]}"
      do
         case "$link_nr" in
