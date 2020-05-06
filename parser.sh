@@ -3,8 +3,8 @@
 # CI Runner Script for Generation of blobs
 #
 
-setup_makefiles="/mnt/compile3/derpfest/device/xiaomi/ginkgo/setup-makefiles.sh"
-extract_files="/mnt/compile3/derpfest/device/xiaomi/ginkgo/extract-files.sh"
+setup_makefiles="/mnt/1/aicp/device/xiaomi/davinci/setup-makefiles.sh"
+extract_files="/mnt/1/aicp/device/xiaomi/davinci/extract-files.sh"
 
 website_curl()
 {
